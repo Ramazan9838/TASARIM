@@ -1,0 +1,23 @@
+{
+  "name": "İznik çinisi esaslı tezhip paleti",
+  "colors": {
+    "astar":      {"hex": "#F7F3E8", "ad": "Beyaz astar (zemin)"},
+    "kobalt":     {"hex": "#1F3F8F", "ad": "Kobalt mavisi"},
+    "lacivert":   {"hex": "#16214F", "ad": "Lacivert"},
+    "firuze":     {"hex": "#2FA3A0", "ad": "Firuze"},
+    "mercan":     {"hex": "#B8322A", "ad": "Mercan kırmızısı (İznik domates kırmızısı)"},
+    "zumrut":     {"hex": "#2E7D4F", "ad": "Zümrüt yeşili"},
+    "altin":      {"hex": "#C9A227", "ad": "Altın (varak)"},
+    "altin_koyu": {"hex": "#8C6D12", "ad": "Koyu altın (altın tahriri)"},
+    "tahrir":     {"hex": "#1C1A17", "ad": "Tahrir (siyah-is)"}
+  },
+  "ekoller": {
+    "01_osmanli_klasik": ["astar", "lacivert", "altin", "altin_koyu", "firuze", "tahrir"],
+    "02_saz_cintemani":  ["astar", "kobalt", "lacivert", "firuze", "mercan", "zumrut", "altin", "altin_koyu", "tahrir"],
+    "03_memluk":         ["astar", "lacivert", "altin", "altin_koyu", "firuze", "tahrir"],
+    "04_nasri":          ["astar", "kobalt", "zumrut", "altin", "altin_koyu", "mercan", "tahrir"],
+    "05_timurlu_herat":  ["astar", "lacivert", "altin", "altin_koyu", "firuze", "tahrir"],
+    "06_safevi":         ["astar", "lacivert", "altin", "altin_koyu", "firuze", "mercan", "zumrut", "tahrir"],
+    "07_sentez":         ["astar", "kobalt", "lacivert", "firuze", "mercan", "zumrut", "altin", "altin_koyu", "tahrir"]
+  }
+}
