@@ -41,6 +41,12 @@ def build(k):
     if im.size != EXPECTED:
         raise SystemExit(f"{k}: PNG boyutu {im.size} != {EXPECTED}")
     im.convert("RGB").save(f"tezhip_{k}.png", dpi=(DPI, DPI), compress_level=6)
+    import json, os
+    from compositions import HAT
+    hp = "hat_alanlari.json"
+    data = json.load(open(hp, encoding="utf-8")) if os.path.exists(hp) else {}
+    data[k] = HAT[k]
+    json.dump(dict(sorted(data.items())), open(hp, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
     print(f"{k}: SVG {len(svg) / 1e6:.1f} MB, PNG {im.size[0]}x{im.size[1]} px, {time.time() - t0:.0f} s", flush=True)
 
 

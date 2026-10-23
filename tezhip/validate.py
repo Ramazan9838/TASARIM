@@ -13,7 +13,7 @@ PX_PER_MM = DPI / 25.4
 ASTAR = np.array([0xF7, 0xF3, 0xE8], dtype=np.int16)
 TOL_ASTAR = 8          # astar sayılma eşiği (kanal başına)
 TOL_SYM = 64           # simetri: kanal farkı bu değeri aşan piksel "farklı" sayılır
-AXES = {"01": "D2", "02": "V", "03": "D2", "04": "D2", "05": "V", "06": "D2", "07": "D2"}
+AXES = {"01": "D2", "02": "V", "03": "D2", "04": "D2", "05": "V", "06": "D2", "07": "D2", "08": "D2"}
 CHUNK = 512
 
 

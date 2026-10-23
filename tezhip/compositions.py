@@ -121,6 +121,60 @@ def tig_around(path, n, L, w, color, keep=None):
     return "".join(out)
 
 
+HAT = {}  # kompozisyon -> hat alanı tanımı (rapor için)
+
+
+def _inside(poly, p):
+    x, y = p
+    ins = False
+    n = len(poly)
+    for i in range(n):
+        (x1, y1), (x2, y2) = poly[i], poly[(i + 1) % n]
+        if (y1 > y) != (y2 > y) and x < x1 + (y - y1) * (x2 - x1) / (y2 - y1):
+            ins = not ins
+    return ins
+
+
+def safe_rect(poly, margin=4.0):
+    """Hat alanına (dikey eksene simetrik) sığan, kenardan margin mm uzak,
+    alanı en büyük eksen-paralel dikdörtgen: (genişlik, yükseklik)."""
+    xs = [p[0] for p in poly]
+    ys = [p[1] for p in poly]
+    cx, cy = (max(xs) + min(xs)) / 2, (max(ys) + min(ys)) / 2
+    W, H = (max(xs) - min(xs)) / 2, (max(ys) - min(ys)) / 2
+    best = (0, 0, 0)
+    for i in range(1, 80):
+        w = W * i / 80
+        for oy in [H * k / 20 for k in range(-6, 7)]:
+            lo, hi = 0.0, H
+            for _ in range(30):
+                h = (lo + hi) / 2
+                ok = all(_inside(poly, (cx + sx * (w + margin), cy + oy + sy * (h + margin)))
+                         for sx in (-1, 0, 1) for sy in (-1, 0, 1) if sx or sy) and \
+                    all(_inside(poly, (cx + (w + margin) * t, cy + oy + sy * (h + margin)))
+                        for t in (-0.75, -0.5, -0.25, 0.25, 0.5, 0.75) for sy in (-1, 1)) and \
+                    all(_inside(poly, (cx + sx * (w + margin), cy + oy + (h + margin) * t))
+                        for t in (-0.75, -0.5, -0.25, 0.25, 0.5, 0.75) for sx in (-1, 1))
+                lo, hi = (h, hi) if ok else (lo, h)
+            if 4 * w * lo > best[0]:
+                best = (4 * w * lo, 2 * w, 2 * lo)
+    return best[1], best[2]
+
+
+def hat_alani(key, path, label, rule=C["altin"], rule_w=1.2, inset_rule=True):
+    """Hat (kitâbe) için boş, astar renkli merkez alanı: içi tamamen boş
+    bırakılır; kenarında altın cetvel ve ince tahrir. Ölçüler rapora yazılır."""
+    poly = [p for p, _ in sample_closed(path, 720)]
+    xs = [p[0] for p in poly]
+    ys = [p[1] for p in poly]
+    w_s, h_s = safe_rect(poly)
+    HAT[key] = {"bicim": label, "genislik_mm": round(max(xs) - min(xs), 1), "yukseklik_mm": round(max(ys) - min(ys), 1),
+                "guvenli_dikdortgen_mm": [round(w_s, 1), round(h_s, 1)],
+                "merkez_mm": [round((max(xs) + min(xs)) / 2, 1), round((max(ys) + min(ys)) / 2, 1)]}
+    out = [el(path, C["astar"], rule, rule_w), el(path, "none", TAH, 0.3)]
+    return "".join(out)
+
+
 # ============================================================ 01 Osmanlı klasik
 def comp01():
     defs = Defs()
@@ -145,7 +199,7 @@ def comp01():
     body.append(clipped(defs, quad(defs, halkar, fx0, fy0, fx1, fy1), field))
 
     # şemse
-    rx, ry = 84, 128
+    rx, ry = 90, 138
     semse = lobed_ellipse(CX, CY, rx, ry, 22, 0.075, phase=0.5)
     pal_s = {"stem": C["altin"], "f1": C["altin"], "f2": C["firuze"], "cal": C["altin"], "p1": C["firuze"],
              "p2": C["altin"], "g1": C["altin"], "gs": C["firuze"], "gi": C["firuze"], "l1": C["firuze"],
@@ -171,6 +225,8 @@ def comp01():
     inner_s = lobed_ellipse(CX, CY, rx - 3.2, ry - 3.2, 22, 0.075, phase=0.5)
     fill_s = scroll((CX, CY - ry, CX + rx, CY), 27, pal_s, sw_stem=0.7, sw=0.25, seed=1, phase=(0, 4))
     body.append(clipped(defs, quad(defs, fill_s, CX - rx, CY - ry, CX + rx, CY + ry), inner_s))
+    # hat alanı: şemsenin içinde dilimli boş oval
+    body.append(hat_alani("01", lobed_ellipse(CX, CY, rx - 22, ry - 24, 22, 0.075, phase=0.5), "dilimli oval (şemse içi)"))
     # köşebentler
     kw, kh = 108, 124
     kos = kosebent_path(fx1, fy0, kw, kh, 7, 0.10, sx=-1, sy=1)
@@ -294,9 +350,6 @@ def comp02():
         h.append(yaprak(place(x, y, r_, sx * 35), C["zumrut"], TAH, 0.25, curve=0.12 * sx))
     # eksen üstündeki çiçekler
     h.append(hatayi(place(CX, fy0 + 40, 64), C["mercan"], TAH, sw, inner=C["kobalt"], calyx=C["zumrut"], center=C["firuze"]))
-    h.append(penc(place(CX, fy0 + 222, 21), C["mercan"], TAH, sw, inner=C["astar"], center=C["kobalt"]))
-    h.append(penc(place(CX, vtop - 74, 16), C["kobalt"], TAH, sw, inner=C["firuze"], center=C["mercan"]))
-    h.append(gonca(place(CX, fy0 + 138, 26), C["firuze"], TAH, sw, sepal=C["zumrut"], inner=C["mercan"]))
     # --- vazo
     vase = sym_bez([
         ((CX, vtop), (CX + 10, vtop), (CX + 20, vtop), (CX + 24, vtop)),
@@ -322,6 +375,14 @@ def comp02():
     for i in range(-2, 3):
         h.append(el(circle(CX + i * 6.5, vtop + 41, 1.4), C["mercan"], TAH, 0.2))
     body.append(clipped(defs, half(defs, "".join(h), fy0, fx1, fy1), field))
+    # hat alanı: ağacın gövdesi önünde dilimli kartuş; dallar arkasından dolaşır
+    kcy, krx, kry = fy0 + 222, 90, 120
+    body.append(el(lobed_ellipse(CX, kcy, krx + 6, kry + 6, 26, 0.07), C["kobalt"], TAH, 0.45))
+    for i in range(52):
+        p = polar(CX, kcy, 1, -90 + i * 360 / 52)
+        q = (CX + (p[0] - CX) * (krx + 3), kcy + (p[1] - kcy) * (kry + 3))
+        body.append(el(circle(q[0], q[1], 0.9), C["mercan"] if i % 2 else C["firuze"]))
+    body.append(hat_alani("02", lobed_ellipse(CX, kcy, krx, kry, 26, 0.07), "dilimli oval kartuş", rule=C["firuze"]))
     return doc("".join(body), defs, "Tezhip 02 - Osmanli saz yolu ve cintemani")
 
 
@@ -367,17 +428,15 @@ def comp03():
         p = polar(CX, CY, R0 - 9, -90 + i * 7.5)
         med.append(el(circle(p[0], p[1], 1.5 if i % 2 else 2.1), C["altin"] if i % 2 else C["firuze"], TAH, 0.2))
     med.append(el(circle(CX, CY, R0 - 13), C["altin"], TAH, 0.35))
-    med.append(rosette(CX, CY, 12, R0 - 17, C["altin"], C["lacivert"], C["astar"], 1.2, TAH, 0.3, ground=C["lacivert"]))
-    # yıldız içinde ikinci kat rozet ve göbek
-    med.append(rosette(CX, CY, 12, 52, C["lacivert"], C["altin"], C["altin_koyu"], 0.6, TAH, 0.2, rot=-90 + 15))
-    med.append(el(circle(CX, CY, 17), C["firuze"], TAH, 0.35))
-    med.append(rosette(CX, CY, 12, 15, C["altin"], C["lacivert"], C["altin"], 0.3, TAH, 0.1))
-    med.append(el(circle(CX, CY, 3), C["astar"], TAH, 0.3))
-    # yapraklar (petal) içinde altın benekler
+    # iç halka: lacivert bant üzerinde 12 küçük 12'li rozet (D12)
+    med.append(el(circle(CX, CY, R0 - 16), C["lacivert"], TAH, 0.3))
     for i in range(12):
-        p = polar(CX, CY, (R0 - 17) * 0.80, -90 + (i + 0.5) * 30)
-        med.append(el(circle(p[0], p[1], 3.0), C["altin"], TAH, 0.25))
-        med.append(el(circle(p[0], p[1], 1.0), C["firuze"]))
+        p = polar(CX, CY, R0 - 26, -90 + i * 30)
+        med.append(rosette(p[0], p[1], 12, 8.5, C["altin"], C["firuze"], C["altin"], 0.3, TAH, 0.1))
+        q = polar(CX, CY, R0 - 26, -90 + i * 30 + 15)
+        med.append(el(circle(q[0], q[1], 2.4), C["altin"], TAH, 0.25))
+    med.append(el(circle(CX, CY, R0 - 36), C["altin"], TAH, 0.35))
+    med.append(hat_alani("03", circle(CX, CY, R0 - 39), "daire", rule=C["altin_koyu"], rule_w=0.6))
     body.append("".join(med))
     return doc("".join(body), defs, "Tezhip 03 - Memluk")
 
@@ -440,7 +499,7 @@ def comp04():
     body.append(clipped(defs, sf + "".join(extra), field))
     body.append(el(field, "none", TAH, 0.5))
     # merkez: kare çerçeve (D4) içinde sekiz köşeli hâtem-i Süleymân (D8)
-    H = 118
+    H = 130
     sq_o = rect(CX - H, CY - H, CX + H, CY + H)
     sq_i = rect(CX - H + 7, CY - H + 7, CX + H - 7, CY + H - 7)
     body.append(el(sq_o, C["zumrut"], TAH, 0.5))
@@ -460,7 +519,7 @@ def comp04():
     m_in, _ = girih("488", CX, CY, s2, (CX - H, CY - H, CX + H, CY + H), 67.5, C["altin"], 1.0, fills2,
                     C["astar"], edge=TAH, ew=0.25)
     body.append(clipped(defs, m_in, sq_i))
-    for k in range(-7, 8):
+    for k in range(-8, 9):
         for (x, y) in ((CX + k * 15.5, CY - H + 3.5), (CX + k * 15.5, CY + H - 3.5),
                        (CX - H + 3.5, CY + k * 15.5), (CX + H - 3.5, CY + k * 15.5)):
             body.append(el(polygon([(x, y - 2.4), (x + 2.4, y), (x, y + 2.4), (x - 2.4, y)]), C["altin"], TAH, 0.2))
@@ -471,22 +530,21 @@ def comp04():
             body.append(el(kosebent_path(x, y, 38, 38, 4, 0.14, sx=-sx, sy=-sy), C["mercan"], TAH, 0.4))
             body.append(el(kosebent_path(x, y, 24, 24, 3, 0.14, sx=-sx, sy=-sy), C["altin"], TAH, 0.3))
     # büyük sekiz kollu yıldız zemin (zellige)
-    R8 = 104
+    R8 = 122
     star = []
     for k in range(16):
         star.append(polar(CX, CY, R8 if k % 2 == 0 else R8 * 0.765, -90 + k * 22.5))
     body.append(el(polygon(star), C["kobalt"], TAH, 0.5))
-    oct_in = [polar(CX, CY, R8 * 0.70, -90 + 22.5 + k * 45) for k in range(8)]
-    body.append(el(polygon(oct_in), C["zumrut"], TAH, 0.4))
     # kollar içinde mercan damlalar
     for k in range(8):
-        p = polar(CX, CY, R8 * 0.83, -90 + k * 45)
-        body.append(el(polygon([polar(p[0], p[1], 7, -90 + k * 45 + j * 90) for j in range(4)]), C["mercan"], TAH, 0.3))
-    body.append(muhr(CX, CY, R8 * 0.93, 5.0, C["astar"], TAH, 0.45, n=8, rot=-90))
-    # merkez 8'li rozet
-    body.append(rosette(CX, CY, 8, 44, C["altin"], C["mercan"], C["astar"], 1.0, TAH, 0.3, rot=-90 + 22.5))
-    body.append(el(circle(CX, CY, 7), C["kobalt"], TAH, 0.4))
-    body.append(el(circle(CX, CY, 2.5), C["astar"], TAH, 0.3))
+        p = polar(CX, CY, R8 * 0.85, -90 + k * 45)
+        body.append(el(polygon([polar(p[0], p[1], 6.5, -90 + k * 45 + j * 90) for j in range(4)]), C["mercan"], TAH, 0.3))
+    rm = R8 * 0.93
+    # hat alanı: iki karenin kesişiminden doğan düzgün sekizgen
+    r_oct = (rm * math.cos(math.radians(45)) - 3.2) / math.cos(math.radians(22.5))
+    body.append(hat_alani("04", polygon([polar(CX, CY, r_oct, -90 + 22.5 + k * 45) for k in range(8)]),
+                          "düzgün sekizgen (hâtem içi)", rule=C["zumrut"], rule_w=1.0))
+    body.append(muhr(CX, CY, rm, 5.0, C["astar"], TAH, 0.45, n=8, rot=-90))
     return doc("".join(body), defs, "Tezhip 04 - Nasri Endulus")
 
 
@@ -545,17 +603,11 @@ def comp05():
         y += 34
         j += 1
     body.append(clipped(defs, half(defs, inner + "".join(clouds), fy0, fx1, bot), A2))
-    # kandil-şemse (kemer tepesinden sarkan)
-    yk = apex + 92
-    body.append(f'<path d="M{num(CX)},{num(apex + 9)}L{num(CX)},{num(yk - 34)}" stroke="{C["altin"]}" stroke-width="1.2"/>')
-    for i in range(4):
-        body.append(el(ellipse(CX, apex + 16 + i * 9, 1.6, 3.2), C["altin"], TAH, 0.25))
-    med = lobed_ellipse(CX, yk, 26, 34, 14, 0.12)
-    body.append(el(semse_finial(CX, yk - 34, 9, 8), C["altin"], TAH, 0.3))
-    body.append(el(salbek_path(CX, yk + 32, 22, 24, up=False), C["altin"], TAH, 0.35))
-    body.append(el(med, C["altin"], TAH, 0.4))
-    body.append(el(lobed_ellipse(CX, yk, 21, 29, 14, 0.12), C["firuze"], TAH, 0.3))
-    body.append(hatayi(place(CX, yk + 1, 30), C["lacivert"], TAH, 0.25, inner=C["altin"], calyx=C["lacivert"], center=C["astar"]))
+    # hat alanı: iç içe kemer; dış kuşak ince hatâyî-bulut dolgulu kalır
+    body.append(el(arch(24), C["altin"], TAH, 0.35))
+    body.append(el(arch(25.5), C["firuze"], TAH, 0.25))
+    body.append(hat_alani("05", arch(27.5), "sivri kemerli pano (mihrabiye)", rule=C["altin"], rule_w=0.8))
+    body.append(penc(place(CX, apex + 16, 6), C["firuze"], TAH, 0.22, inner=C["astar"], center=C["altin"]))
     # alt kartuş: bulut şeridi
     cy2 = (bot + fy1) / 2
     body.append(el(rect(fx0 + 9, bot + 5, fx1 - 9, fy1 - 5), C["altin"], TAH, 0.4))
@@ -630,7 +682,7 @@ def comp06():
     kq.append(clipped(defs, scroll((fx1 - kr, fy0, fx1, fy0 + kr), 21, pal_l, sw_stem=0.5, sw=0.2, seed=6, phase=(3, 2)), kos_in))
     body.append(clipped(defs, sym_d2("".join(kq)), field))
     # şemse (toranj): uzun dilimli oval, iki uçta tepelik ve küçük sarkıt
-    rx, ry = 74, 150
+    rx, ry = 84, 152
     sem = lobed_ellipse(CX, CY, rx, ry, 30, 0.06)
     sem_in = lobed_ellipse(CX, CY, rx - 4.5, ry - 4.5, 30, 0.06)
     for up in (True, False):
@@ -642,22 +694,11 @@ def comp06():
     body.append(el(sem_in, C["lacivert"], TAH, 0.3))
     sf = scroll((CX, CY - ry, CX + rx, CY), 22, pal_l, sw_stem=0.55, sw=0.2, seed=7, phase=(0, 2))
     body.append(clipped(defs, quad(defs, sf, CX - rx, CY - ry, CX + rx, CY + ry), sem_in))
-    # iç şemse (mercan zemin)
-    irx, iry = 30, 62
-    isem = lobed_ellipse(CX, CY, irx, iry, 16, 0.10)
-    body.append(el(isem, C["altin"], TAH, 0.4))
-    isem2 = lobed_ellipse(CX, CY, irx - 3, iry - 3, 16, 0.10)
-    body.append(el(isem2, C["mercan"], TAH, 0.3))
-    cen = []
-    cen.append(penc(place(CX, CY, 13), C["altin"], TAH, 0.25, inner=C["lacivert"], center=C["firuze"]))
-    for up in (-1, 1):
-        cen.append(hatayi(place(CX, CY + up * 36, 24, 0 if up < 0 else 180), C["lacivert"], TAH, 0.22,
-                          inner=C["altin"], calyx=C["zumrut"]))
-    for sx in (-1, 1):
-        for sy in (-1, 1):
-            cen.append(yaprak(place(CX + sx * 13, CY + sy * 17, 13, 90 * sx + (-35 if sy < 0 else 35) * sx * -1 + (0 if sy < 0 else 0)),
-                              C["zumrut"], TAH, 0.2))
-    body.append(clipped(defs, quad(defs, "".join(cen), CX - irx, CY - iry, CX + irx, CY + iry), isem2))
+    # hat alanı: şemse içinde altın cetvelli boş dilimli oval
+    body.append(el(lobed_ellipse(CX, CY, rx - 23, ry - 27, 20, 0.05), C["altin"], TAH, 0.4))
+    body.append(el(lobed_ellipse(CX, CY, rx - 25, ry - 29, 20, 0.05), C["mercan"], TAH, 0.25))
+    body.append(hat_alani("06", lobed_ellipse(CX, CY, rx - 27, ry - 31, 20, 0.05), "dilimli oval (turunç içi)",
+                          rule=C["altin"], rule_w=0.8))
     return doc("".join(body), defs, "Tezhip 06 - Safevi")
 
 
@@ -712,21 +753,150 @@ def comp07():
     p = polar(CX, CY, 84, 13)
     ring.append(bulut(place(p[0], p[1], 18, 13 + 90), C["firuze"], TAH, 0.2))
     body.append(rotate_copies("".join(ring), 8, CX, CY, mirror=True))
-    body.append(el(circle(CX, CY, 74), C["altin"], TAH, 0.4))
-    body.append(el(circle(CX, CY, 70), C["astar"], TAH, 0.35))
-    # mühr-i Süleyman (geçmeli hexagram) + Osmanlı hatâyî
-    inner = []
+    body.append(el(circle(CX, CY, 76), C["altin"], TAH, 0.4))
+    body.append(hat_alani("07", circle(CX, CY, 72), "daire", rule=C["firuze"], rule_w=1.0))
+    # mühr-i Süleyman: madalyonun üstünde ve altında geçmeli hexagram madalyonları
+    ym = CY - R0 - 30
+    md = [el(lobed_ellipse(CX, ym, 27, 27, 12, 0.10), C["altin"], TAH, 0.4),
+          el(circle(CX, ym, 23), C["astar"], TAH, 0.3)]
     for k in range(6):
         a = -90 + k * 60
-        p = polar(CX, CY, 47, a)
-        inner.append(hatayi(place(p[0], p[1], 21, a + 90), C["mercan"], TAH, 0.22, inner=C["kobalt"],
-                            calyx=C["zumrut"], center=C["altin"]))
-        q = polar(CX, CY, 56, a + 30)
-        inner.append(gonca(place(q[0], q[1] + 0, 11, a + 30 + 90), C["kobalt"], TAH, 0.2, sepal=C["zumrut"], inner=C["firuze"]))
-    body.append("".join(inner))
-    body.append(muhr(CX, CY, 66, 4.6, C["altin"], TAH, 0.4, n=6))
-    body.append(penc(place(CX, CY, 21), C["mercan"], TAH, 0.3, n=6, inner=C["astar"], center=C["kobalt"]))
+        p = polar(CX, ym, 13.5, a)
+        md.append(hatayi(place(p[0], p[1], 7.5, a + 90), C["mercan"], TAH, 0.15, inner=C["kobalt"],
+                         calyx=C["zumrut"], center=C["altin"]))
+    md.append(muhr(CX, ym, 21, 2.2, C["altin"], TAH, 0.28, n=6))
+    md.append(penc(place(CX, ym, 5.5), C["mercan"], TAH, 0.2, n=6, inner=C["astar"], center=C["kobalt"]))
+    md = "".join(md)
+    body.append(md + mirror_y(md, CY))
     return doc("".join(body), defs, "Tezhip 07 - Sentez")
 
 
-COMPS.update({"02": comp02, "03": comp03, "04": comp04, "05": comp05, "06": comp06, "07": comp07})
+def rot_about(path, deg, cx=CX, cy=CY):
+    return path.tf(mat(T(cx, cy), mat(R(deg), T(-cx, -cy))))
+
+
+def star_medallion(cx, cy, r, ground, line, accent):
+    """{8/3} geçmeli yıldız madalyonu (dilimli çerçeve içinde)."""
+    out = [el(lobed_ellipse(cx, cy, r, r, 8, 0.16), C["altin"], TAH, 0.4),
+           el(lobed_ellipse(cx, cy, r - 2.6, r - 2.6, 8, 0.16), ground, TAH, 0.3)]
+    pts = [polar(cx, cy, r * 0.80, -90 + 22.5 + k * 45) for k in range(8)]
+    segs = [(pts[k], pts[(k + 3) % 8]) for k in range(8)]
+    star = []
+    for k in range(16):
+        star.append(polar(cx, cy, r * 0.80 if k % 2 == 0 else r * 0.80 * 0.54, -90 + 22.5 + k * 22.5))
+    out.append(el(polygon(star), accent, None))
+    out.append(interlace(segs, r * 0.07, line, TAH, r * 0.018, weave(segs)))
+    out.append(rosette(cx, cy, 8, r * 0.30, C["altin"], C["mercan"], C["altin_koyu"], 0.2, TAH, 0.08, rot=-90 + 22.5))
+    return "".join(out)
+
+
+def pendant(x, y0, L, up=False):
+    """Sarkan zincirli salbek (ince altın tel, boncuklar, lacivert badem
+    damla ve uçta tığ). up=True ise alttan yukarı uzanır."""
+    s = -1 if up else 1
+    out = [f'<path d="M{num(x)},{num(y0)}L{num(x)},{num(y0 + s * L)}" stroke="{C["altin_koyu"]}" stroke-width="0.45"/>']
+    for f in (0.18, 0.42):
+        out.append(el(circle(x, y0 + s * L * f, 1.3), C["altin"], TAH, 0.2))
+    yc = y0 + s * L * 0.68
+    drop = lobed_ellipse(x, yc, 6.5, 10.5, 10, 0.10)
+    out.append(el(drop, C["altin"], TAH, 0.3))
+    out.append(el(lobed_ellipse(x, yc, 4.6, 8.4, 10, 0.10), C["lacivert"], TAH, 0.25))
+    out.append(penc(place(x, yc, 2.6), C["mercan"], TAH, 0.12, inner=C["astar"], center=C["altin"]))
+    out.append(el(polygon([(x, yc - 13.5), (x + 2.3, yc - 11), (x, yc - 8.5), (x - 2.3, yc - 11)]) if not up else
+                  polygon([(x, yc + 13.5), (x + 2.3, yc + 11), (x, yc + 8.5), (x - 2.3, yc + 11)]), C["kobalt"], TAH, 0.2))
+    out.append(el(tig_path((x, yc + s * 10.4), (0, s), L * 0.30, 2.2), C["lacivert"]))
+    # tele bağlı ince altın filizler
+    for sx in (-1, 1):
+        yy = y0 + s * L * 0.30
+        out.append(yaprak(place(x + sx * 1.0, yy, 6.5, sx * 55 + (180 if up else 0), flip=sx < 0), C["altin"], C["altin_koyu"], 0.15))
+    return "".join(out)
+
+
+# ============================================================ 08 Kitap kapağı / levha (boş merkezli halka)
+def comp08():
+    defs = Defs()
+    body = []
+    frame, fin = outer_frame(defs, C["lacivert"], C["altin"], C["lacivert"])
+    body.append(frame)
+    bw = 20
+    (bx0, by0, bx1, by1), (fx0, fy0, fx1, fy1) = standard_border(fin, bw, gap=6)
+    pal_b = {"w": bw, "stem": C["altin"], "f1": C["mercan"], "f2": C["firuze"], "cal": C["altin"],
+             "p1": C["astar"], "p2": C["mercan"], "l1": C["altin"], "r1": C["firuze"]}
+    body.append(frame_band(bx0, by0, bx1, by1, bw, C["kobalt"], band_content(pal_b, k_per=1.3, fscale=0.58),
+                           corner_penc(C["altin"], C["firuze"], C["kobalt"]), C["altin"], 1.0))
+    # bordür üzerinde kenar ortası ve köşe madalyonları (firuze, dilimli)
+    def bmed(x, y, r):
+        return (el(lobed_ellipse(x, y, r, r, 10, 0.14), C["altin"], TAH, 0.4) +
+                el(lobed_ellipse(x, y, r - 2.4, r - 2.4, 10, 0.14), C["firuze"], TAH, 0.3) +
+                penc(place(x, y, r * 0.48), C["kobalt"], TAH, 0.2, inner=C["astar"], center=C["mercan"]))
+    bm = [bmed(CX, by0 + bw / 2, 15), bmed(bx0 + bw / 2, CY, 15), bmed(bx0 + bw / 2, by0 + bw / 2, 15)]
+    body.append(sym_d2("".join(bm)))
+    field = rect(fx0, fy0, fx1, fy1)
+    body.append(el(rect(fx0 - 2.5, fy0 - 2.5, fx1 + 2.5, fy1 + 2.5), "none", C["altin"], 1.4))
+    body.append(el(rect(fx0 - 2.5, fy0 - 2.5, fx1 + 2.5, fy1 + 2.5), "none", TAH, 0.25))
+    # köşebentler: kobalt zemin, altın helezon + mercan hatâyî
+    kw, kh = 82, 92
+    kos = kosebent_path(fx1, fy0, kw, kh, 6, 0.12, sx=-1, sy=1)
+    kos_in = kosebent_path(fx1, fy0, kw - 3, kh - 3, 6, 0.12, sx=-1, sy=1)
+    pal_k = {"stem": C["altin"], "f1": C["mercan"], "f2": C["firuze"], "cal": C["altin"], "p1": C["astar"],
+             "p2": C["mercan"], "g1": C["mercan"], "gs": C["altin"], "gi": C["firuze"], "l1": C["altin"],
+             "r1": C["firuze"], "c": C["altin"]}
+    kq = [tig_around(kos, 70, 5.0, 1.4, C["kobalt"], keep=lambda p: p[0] < fx1 - 2 and p[1] > fy0 + 2),
+          el(kos, C["kobalt"], C["altin"], 2.0)]
+    kq.append(clipped(defs, scroll((fx1 - kw, fy0, fx1, fy0 + kh), 24, pal_k, sw_stem=0.55, sw=0.22, seed=9,
+                                   phase=(4, 5)), kos_in))
+    kq.append(el(kos, "none", TAH, 0.3))
+    body.append(clipped(defs, sym_d2("".join(kq)), field))
+    # sarkan zincirli salbekler (üstten aşağı, alttan yukarı)
+    pend = []
+    for (dx, L) in ((60, 68),):
+        pend.append(pendant(CX + dx, fy0, L))
+    pend.append(pendant(fx1 - 10, fy0 + kh + 4, 60))
+    pend.append(pendant(fx1 - 34, fy0 + kh - 14, 52))
+    pd = "".join(pend)
+    pd = pd + mirror_x(pd, CX)
+    body.append(clipped(defs, pd + mirror_y(pd, CY), field))
+    # halka madalyon
+    Ro, Ri = 118, 86
+    # dört eksende dilimli çıkıntılar (salbek-tepelik) ve çaprazlarda firuze madalyonlar
+    pal_m = {"stem": C["altin"], "f1": C["mercan"], "f2": C["firuze"], "cal": C["altin"], "p1": C["astar"],
+             "p2": C["mercan"], "g1": C["mercan"], "gs": C["altin"], "gi": C["astar"], "l1": C["altin"],
+             "r1": C["firuze"], "c": C["altin"]}
+    lobes = []
+    # dikey eksende uzun, yatay eksende kısa çıkıntı (dikey sayfa oranı; D2)
+    lh = {0: 62, 180: 62, 90: 34, 270: 34}
+    for a in (0, 90, 180, 270):
+        lobes.append(rot_about(salbek_path(CX, CY - Ro + 16, 96 if lh[a] > 40 else 78, lh[a], up=True), a))
+    for a in (45, 135, 225, 315):
+        q = polar(CX, CY, Ro + 2, a - 90)
+        body.append(el(lobed_ellipse(q[0], q[1], 19, 19, 12, 0.14), C["altin"], TAH, 0.4))
+        body.append(el(lobed_ellipse(q[0], q[1], 16.5, 16.5, 12, 0.14), C["firuze"], TAH, 0.3))
+        body.append(hatayi(place(q[0], q[1] + 1, 20, 0 if a in (45, 315) else 180), C["kobalt"], TAH, 0.2,
+                           inner=C["astar"], calyx=C["altin"], center=C["mercan"]))
+    for a, lp in zip((0, 90, 180, 270), lobes):
+        r_tip = Ro - 16 + lh[a]
+        u = polar(0, 0, 1, a - 90)
+        body.append(el(tig_path(polar(CX, CY, r_tip - 2, a - 90), u, 12 if lh[a] > 40 else 8, 3.6), C["kobalt"], TAH, 0.25))
+        body.append(el(lp, C["kobalt"], C["altin"], 2.0))
+    ring = circle(CX, CY, Ro)
+    body.append(el(ring, C["kobalt"], C["altin"], 2.2))
+    mfill = scroll((CX, CY - Ro - 50, CX + Ro + 50, CY), 23, pal_m, sw_stem=0.55, sw=0.22, seed=10, phase=(0, 2))
+    mq = quad(defs, mfill, CX - Ro - 50, CY - Ro - 50, CX + Ro + 50, CY + Ro + 50)
+    for lp in lobes:
+        inner_lp = lp
+        body.append(clipped(defs, mq, inner_lp))
+    body.append(clipped(defs, mq, circle(CX, CY, Ro - 1.5)))
+    for lp in lobes:
+        body.append(el(lp, "none", TAH, 0.3))
+    body.append(el(ring, "none", TAH, 0.3))
+    # dört eksende yıldız madalyonları (halkanın üzerinde)
+    rm = (Ro + Ri) / 2
+    for a in (0, 90, 180, 270):
+        q = polar(CX, CY, rm, a - 90)
+        body.append(star_medallion(q[0], q[1], 21, C["lacivert"], C["altin"], C["kobalt"]))
+    body.append(el(circle(CX, CY, Ri + 2.5), C["altin"], TAH, 0.35))
+    body.append(hat_alani("08", circle(CX, CY, Ri), "daire (halka madalyon içi)", rule=C["altin_koyu"], rule_w=0.6))
+    return doc("".join(body), defs, "Tezhip 08 - Bos merkezli halka madalyon")
+
+
+COMPS.update({"02": comp02, "03": comp03, "04": comp04, "05": comp05, "06": comp06, "07": comp07, "08": comp08})

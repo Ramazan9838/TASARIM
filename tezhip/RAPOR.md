@@ -1,4 +1,4 @@
-# Tezhip kompozisyonları 01–07: üretim ve doğrulama raporu
+# Tezhip kompozisyonları 01–08: üretim ve doğrulama raporu
 
 ## 1. Dosyalar
 
@@ -10,7 +10,8 @@
 | `build.py` | SVG → PDF (vektör) ve PNG (600 dpi) üretimi (cairosvg 2.9) |
 | `validate.py` | Kenar boşluğu ve simetri ölçümü, `validation.json`, `contact_sheet.png` |
 | `motif_test.py` → `motif_test.svg/png` | Motif sözlüğü test sayfası |
-| `tezhip_XX.svg / .pdf / .png` | Kaynak, baskı ve raster çıktılar (XX = 01…07) |
+| `tezhip_XX.svg / .pdf / .png` | Kaynak, baskı ve raster çıktılar (XX = 01…08) |
+| `hat_alanlari.json` | Her görselin boş hat alanının biçimi, ölçüleri ve merkezi |
 
 Yeniden üretmek için: `python3 build.py && python3 validate.py`
 
@@ -19,6 +20,30 @@ Bütün görsellerde ortak teknik özellikler şunlardır:
 - **Tezhip alanı:** 400 × 600 mm, 50 mm paspartu payıyla sayfaya ortalı.
 - **Kırpma:** Bütün içerik tezhip alanına `clipPath` ile kırpılır; alanın dışına hiçbir çizgi, motif veya gölge taşmaz.
 - **Raster çıktı:** PNG'ler 11811 × 16535 px, RGB ve 600 dpi pHYs bilgisiyle kaydedildi.
+
+## 1a. Hat (kitâbe) alanları
+
+İkinci revizyonda her kompozisyonun merkezine, hat yazılmak üzere **tamamen boş, astar renkli** bir alan açıldı; kenarında yalnız ince cetvel ve tahrir vardır. Bu alanın içinde hiçbir motif bulunmaz. 08 ise doğrudan bu amaçla, örnek alınan kitap kapağı/levha düzenine göre tasarlandı.
+
+Tablodaki ölçüler mm cinsindendir ve sayfanın sol üst köşesine göre verilmiştir. "Güvenli dikdörtgen", hat alanına kenardan 4 mm boşluk bırakarak sığan en büyük düz dikdörtgendir; satır düzeni planlanırken bu ölçü esas alınabilir.
+
+| # | Alanın biçimi | Dış ölçü (G × Y) | Güvenli dikdörtgen | Merkez (x, y) |
+|---|---|---|---|---|
+| 01 | dilimli oval (şemse içi) | 142,9 × 241,7 | 100,0 × 151,9 | 250,0 / 350,0 |
+| 02 | dilimli oval kartuş | 190,2 × 251,8 | 133,1 × 161,8 | 250,0 / 322,8 |
+| 03 | daire | Ø 166,0 | 110,0 × 108,8 | 250,0 / 350,0 |
+| 04 | düzgün sekizgen (hâtem içi) | 154,1 × 154,0 | 100,1 × 101,7 | 250,0 / 350,0 |
+| 05 | sivri kemerli pano (mihrabiye) | 237,4 × 378,5 | 222,6 × 294,8 | 250,0 / 332,4 |
+| 06 | dilimli oval (turunç içi) | 117,3 × 249,0 | 76,2 × 168,7 | 250,0 / 350,0 |
+| 07 | daire | Ø 144,0 | 93,6 × 94,0 | 250,0 / 350,0 |
+| 08 | daire (halka madalyon içi) | Ø 172,0 | 114,0 × 113,3 | 250,0 / 350,0 |
+
+Kullanım önerisi:
+- **Yuvarlak alanlar (03, 07, 08):** celî sülüs veya istif edilmiş besmele/âyet için uygundur.
+- **Dikey ovaller (01, 06):** iki-üç satırlık bir kompozisyon için uygundur.
+- **Mihrabiye (05):** en geniş alandır; çok satırlı bir metne (hilye, kıta, âyet levhası) elverişlidir.
+
+Hat elle ya da dijital olarak SVG/PDF üzerine eklenebilir. SVG'de alan `fill="#F7F3E8"` dolgulu tek bir yoldur; doğrudan onun üstüne yeni bir katman eklenebilir.
 
 ## 2. Motif sözlüğü (`motifs.py`)
 
@@ -77,6 +102,7 @@ Her motif `(A, fill, stroke, sw, …)` parametrelerini alır. Burada `A` afin ye
 | 05 | 1181 | 1181 | 1180 | 1180 | 50,00 | 49,95 | 0 | 0 |
 | 06 | 1181 | 1181 | 1180 | 1180 | 50,00 | 49,95 | 0 | 0 |
 | 07 | 1181 | 1181 | 1180 | 1180 | 50,00 | 49,95 | 0 | 0 |
+| 08 | 1181 | 1181 | 1180 | 1180 | 50,00 | 49,95 | 0 | 0 |
 
 Teorik değer 50 mm × 23,622 = 1181,1 px'tir. Üst ve alt kenarda ölçülen 1180 px, aşağıda açıklanan 0,22 px'lik raster faz kaydırmasından gelir: ilk satır kısmen kaplanır. Bütün görsellerde fark 0 px'tir; ±1 px ölçütü karşılanır.
 
@@ -86,15 +112,18 @@ Teorik değer 50 mm × 23,622 = 1181,1 px'tir. Üst ve alt kenarda ölçülen 11
 
 | # | Simetri | Dikey eksen (sol↔sağ) | Yatay eksen (üst↔alt) | Sonuç |
 |---|---|---|---|---|
-| 01 | D2 | %0,0509 (OMF 0,13) | %0,0336 (OMF 0,09) | geçti |
-| 02 | dikey ayna | %0,0000 (OMF 0,02) | — | geçti |
-| 03 | D2 + D12 rozet | %0,0356 (OMF 0,11) | %0,0217 (OMF 0,05) | geçti |
-| 04 | D2 + D4 merkez | %0,0370 (OMF 0,12) | %0,0370 (OMF 0,09) | geçti |
-| 05 | dikey ayna | %0,0008 (OMF 0,04) | — | geçti |
-| 06 | D2 | %0,0003 (OMF 0,03) | %0,0001 (OMF 0,02) | geçti |
-| 07 | D2 + D8 halka | %0,0696 (OMF 0,15) | %0,0744 (OMF 0,14) | geçti |
+| 01 | D2 | %0,0513 (OMF 0,13) | %0,0332 | geçti |
+| 02 | dikey ayna | %0,0000 | — | geçti |
+| 03 | D2 + D12 halka | %0,0356 | %0,0217 | geçti |
+| 04 | D2 + D4 merkez | %0,0368 | %0,0368 | geçti |
+| 05 | dikey ayna | %0,0001 | — | geçti |
+| 06 | D2 | %0,0000 | %0,0001 | geçti |
+| 07 | D2 + D8 halka | %0,0613 | %0,0538 | geçti |
+| 08 | D2 (D4 halka) | %0,0476 | %0,2280 | geçti |
 
-Bütün değerler %0,5 eşiğinin en az yedi kat altındadır. Ayrıntılı ham sonuçlar `validation.json` dosyasındadır.
+Değerler hat alanlı ikinci revizyona aittir. 08'in yatay eksendeki görece yüksek değeri, halka üzerindeki geçmeli {8/3} yıldız madalyonlarından gelir (§3.4).
+
+Bütün değerler %0,5 eşiğinin altındadır. Ayrıntılı ham sonuçlar `validation.json` dosyasındadır.
 
 ### 3.3 Doğrulama sürecinde düzeltilenler
 
@@ -120,6 +149,18 @@ Bu nedenle şu tercihler yapıldı:
 - **Merkezdeki hâtemler:** gerçek almaşık geçme olarak bırakıldı.
 
 ## 4. Kompozisyonlar: ekol ve şema özeti
+
+İkinci revizyonda yapılan değişiklikler:
+- **01:** Şemse büyütüldü (90 × 138 mm yarı eksen) ve içi boş bırakıldı; dolgu şemsenin kuşağında kaldı.
+- **02:** Ağacın önüne kobalt kuşaklı dilimli kartuş kondu; dallar ve saz yaprakları kartuşun arkasından dolaşır.
+- **03:** Merkez rozet kaldırıldı; yerine üzerinde 12 küçük rozet bulunan lacivert bir halka geldi (D12 korunur).
+- **04:** Sekiz köşeli hâtemin iki karesinin kesişiminden doğan sekizgen boş bırakıldı.
+- **05:** Kemer içinde iç içe ikinci bir kemer açıldı; kandil kaldırıldı.
+- **06:** Mercan iç şemse yerine boş, dilimli bir oval geldi.
+- **07:** Merkezdeki hexagram, madalyonun üst ve alt eksenine iki küçük geçmeli madalyon olarak taşındı.
+
+Aşağıdaki tanımlar ilk sürümü anlatır; merkez öğeler yukarıdaki değişikliklerle birlikte okunmalıdır.
+
 
 **01 — Osmanlı klasik (16. yy).**
 - **Merkez:** 22 dilimli lacivert şemse; altın sırt, tahrir ve çevresinde tığlar vardır. Dikey uçlarda tepelikli iki salbek bulunur.
@@ -177,6 +218,14 @@ Bu nedenle şu tercihler yapıldı:
 - **Köşebentler:** Osmanlı hatâyî.
 - **Bordür:** Safevî bulut ve penç.
 - **Palet:** tam palet.
+
+**08 — Boş merkezli halka madalyonlu kitap kapağı / levha (klasik Osmanlı üslûbu).**
+Tasarım, kullanıcının örnek gösterdiği düzene göre yapıldı.
+- **Merkez:** kobalt halka madalyon; içinde hatâyî-rûmî helezonları vardır. Halkanın dört ekseninde geçmeli {8/3} yıldız madalyonları, dışında ise dilimli çıkıntılar bulunur: dikey eksende uzun, yatayda kısa, uçlarında tığ vardır. Çaprazlarda firuze dilimli madalyonlar yer alır.
+- **Köşebentler:** dört adet, tığlı.
+- **Zemin:** Astar zemin açık bırakıldı; üstünde yalnız zincirli sarkan salbekler (ince altın tel, boncuk, lacivert badem damla, uçta tığ) vardır.
+- **Bordür:** kobalt koşan dal; kenar ortalarında ve köşelerde firuze dilimli madalyonlar.
+- **Simetri:** D2; halka D4.
 
 ## 5. Bilimsel notlar ve bilinçli tercihler
 

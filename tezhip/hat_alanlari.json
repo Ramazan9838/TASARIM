@@ -1,0 +1,106 @@
+{
+  "01": {
+    "bicim": "dilimli oval (şemse içi)",
+    "genislik_mm": 142.9,
+    "yukseklik_mm": 241.7,
+    "guvenli_dikdortgen_mm": [
+      100.0,
+      151.9
+    ],
+    "merkez_mm": [
+      250.0,
+      350.0
+    ]
+  },
+  "02": {
+    "bicim": "dilimli oval kartuş",
+    "genislik_mm": 190.2,
+    "yukseklik_mm": 251.8,
+    "guvenli_dikdortgen_mm": [
+      133.1,
+      161.8
+    ],
+    "merkez_mm": [
+      250.0,
+      322.8
+    ]
+  },
+  "03": {
+    "bicim": "daire",
+    "genislik_mm": 166.0,
+    "yukseklik_mm": 166.0,
+    "guvenli_dikdortgen_mm": [
+      110.0,
+      108.8
+    ],
+    "merkez_mm": [
+      250.0,
+      350.0
+    ]
+  },
+  "04": {
+    "bicim": "düzgün sekizgen (hâtem içi)",
+    "genislik_mm": 154.1,
+    "yukseklik_mm": 154.0,
+    "guvenli_dikdortgen_mm": [
+      100.1,
+      101.7
+    ],
+    "merkez_mm": [
+      250.0,
+      350.0
+    ]
+  },
+  "05": {
+    "bicim": "sivri kemerli pano (mihrabiye)",
+    "genislik_mm": 237.4,
+    "yukseklik_mm": 378.5,
+    "guvenli_dikdortgen_mm": [
+      222.6,
+      294.8
+    ],
+    "merkez_mm": [
+      250.0,
+      332.4
+    ]
+  },
+  "06": {
+    "bicim": "dilimli oval (turunç içi)",
+    "genislik_mm": 117.3,
+    "yukseklik_mm": 249.0,
+    "guvenli_dikdortgen_mm": [
+      76.2,
+      168.7
+    ],
+    "merkez_mm": [
+      250.0,
+      350.0
+    ]
+  },
+  "07": {
+    "bicim": "daire",
+    "genislik_mm": 144.0,
+    "yukseklik_mm": 144.0,
+    "guvenli_dikdortgen_mm": [
+      93.6,
+      94.0
+    ],
+    "merkez_mm": [
+      250.0,
+      350.0
+    ]
+  },
+  "08": {
+    "bicim": "daire (halka madalyon içi)",
+    "genislik_mm": 172.0,
+    "yukseklik_mm": 172.0,
+    "guvenli_dikdortgen_mm": [
+      114.0,
+      113.3
+    ],
+    "merkez_mm": [
+      250.0,
+      350.0
+    ]
+  }
+}

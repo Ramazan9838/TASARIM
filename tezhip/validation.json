@@ -27,12 +27,12 @@
       ]
     },
     "simetri_dikey_eksen": {
-      "farkli_piksel_orani_%": 0.0509,
-      "ortalama_mutlak_fark": 0.1303
+      "farkli_piksel_orani_%": 0.0513,
+      "ortalama_mutlak_fark": 0.1273
     },
     "simetri_yatay_eksen": {
-      "farkli_piksel_orani_%": 0.0336,
-      "ortalama_mutlak_fark": 0.085
+      "farkli_piksel_orani_%": 0.0332,
+      "ortalama_mutlak_fark": 0.0805
     },
     "kenar_gecti": true,
     "simetri_gecti": true
@@ -66,7 +66,7 @@
     },
     "simetri_dikey_eksen": {
       "farkli_piksel_orani_%": 0.0,
-      "ortalama_mutlak_fark": 0.0249
+      "ortalama_mutlak_fark": 0.0214
     },
     "kenar_gecti": true,
     "simetri_gecti": true
@@ -100,11 +100,11 @@
     },
     "simetri_dikey_eksen": {
       "farkli_piksel_orani_%": 0.0356,
-      "ortalama_mutlak_fark": 0.1053
+      "ortalama_mutlak_fark": 0.1035
     },
     "simetri_yatay_eksen": {
       "farkli_piksel_orani_%": 0.0217,
-      "ortalama_mutlak_fark": 0.0477
+      "ortalama_mutlak_fark": 0.0482
     },
     "kenar_gecti": true,
     "simetri_gecti": true
@@ -137,12 +137,12 @@
       ]
     },
     "simetri_dikey_eksen": {
-      "farkli_piksel_orani_%": 0.037,
-      "ortalama_mutlak_fark": 0.1193
+      "farkli_piksel_orani_%": 0.0368,
+      "ortalama_mutlak_fark": 0.117
     },
     "simetri_yatay_eksen": {
-      "farkli_piksel_orani_%": 0.037,
-      "ortalama_mutlak_fark": 0.0885
+      "farkli_piksel_orani_%": 0.0368,
+      "ortalama_mutlak_fark": 0.088
     },
     "kenar_gecti": true,
     "simetri_gecti": true
@@ -175,8 +175,8 @@
       ]
     },
     "simetri_dikey_eksen": {
-      "farkli_piksel_orani_%": 0.0008,
-      "ortalama_mutlak_fark": 0.0418
+      "farkli_piksel_orani_%": 0.0001,
+      "ortalama_mutlak_fark": 0.0235
     },
     "kenar_gecti": true,
     "simetri_gecti": true
@@ -209,12 +209,12 @@
       ]
     },
     "simetri_dikey_eksen": {
-      "farkli_piksel_orani_%": 0.0003,
-      "ortalama_mutlak_fark": 0.0345
+      "farkli_piksel_orani_%": 0.0,
+      "ortalama_mutlak_fark": 0.0318
     },
     "simetri_yatay_eksen": {
       "farkli_piksel_orani_%": 0.0001,
-      "ortalama_mutlak_fark": 0.0238
+      "ortalama_mutlak_fark": 0.0221
     },
     "kenar_gecti": true,
     "simetri_gecti": true
@@ -247,12 +247,50 @@
       ]
     },
     "simetri_dikey_eksen": {
-      "farkli_piksel_orani_%": 0.0696,
-      "ortalama_mutlak_fark": 0.1533
+      "farkli_piksel_orani_%": 0.0613,
+      "ortalama_mutlak_fark": 0.1382
     },
     "simetri_yatay_eksen": {
-      "farkli_piksel_orani_%": 0.0744,
-      "ortalama_mutlak_fark": 0.1418
+      "farkli_piksel_orani_%": 0.0538,
+      "ortalama_mutlak_fark": 0.1061
+    },
+    "kenar_gecti": true,
+    "simetri_gecti": true
+  },
+  "08": {
+    "dosya": "tezhip_08.png",
+    "boyut_px": [
+      11811,
+      16535
+    ],
+    "simetri_grubu": "D2",
+    "kenar": {
+      "sol_px": 1181,
+      "sag_px": 1181,
+      "ust_px": 1180,
+      "alt_px": 1180,
+      "sol_mm": 50.0,
+      "sag_mm": 50.0,
+      "ust_mm": 49.95,
+      "alt_mm": 49.95,
+      "fark_yatay_px": 0,
+      "fark_dikey_px": 0,
+      "ilk_son_x": [
+        1181,
+        10629
+      ],
+      "ilk_son_y": [
+        1180,
+        15354
+      ]
+    },
+    "simetri_dikey_eksen": {
+      "farkli_piksel_orani_%": 0.0476,
+      "ortalama_mutlak_fark": 0.1082
+    },
+    "simetri_yatay_eksen": {
+      "farkli_piksel_orani_%": 0.228,
+      "ortalama_mutlak_fark": 0.3677
     },
     "kenar_gecti": true,
     "simetri_gecti": true
